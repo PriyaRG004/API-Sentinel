@@ -2,8 +2,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from urllib.parse import quote_plus
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 DB_USER = "postgres"
-DB_PASSWORD = "Priya@5977"
+DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_HOST = "localhost"
 DB_PORT = "5432"
 DB_NAME = "api_sentinel"

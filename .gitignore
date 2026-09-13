@@ -5,21 +5,20 @@ backend/venv/
 __pycache__/
 *.pyc
 
-# Pytest cache
+# Pytest
 .pytest_cache/
 
 # Environment variables
 .env
+backend/.env
 
 # Node
 frontend/node_modules/
-
-# Vite build
 frontend/dist/
 
 # VS Code
 .vscode/
 
-# Operating system
+# OS
 .DS_Store
 Thumbs.db
