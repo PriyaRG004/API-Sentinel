@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-
 from database import SessionLocal
 from models import API, MonitoringCheck
 from monitor import check_api
@@ -9,30 +8,20 @@ import scheduler
 
 
 app = FastAPI(title="API Sentinel")
-@app.on_event("startup")
-def start_background_scheduler():
-    scheduler.start_scheduler()
 
-
-# --------------------------------------------------
-# CORS
-# --------------------------------------------------
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173"
-    ],
+    allow_origins=["http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-# --------------------------------------------------
+# -------------------------
 # REQUEST MODELS
-# --------------------------------------------------
+# -------------------------
 
 class APIRequest(BaseModel):
     name: str
@@ -43,9 +32,9 @@ class APIStatusRequest(BaseModel):
     active: bool
 
 
-# --------------------------------------------------
+# -------------------------
 # ROOT
-# --------------------------------------------------
+# -------------------------
 
 @app.get("/")
 def read_root():
@@ -54,67 +43,70 @@ def read_root():
     }
 
 
-# --------------------------------------------------
-# GET ALL ACTIVE APIs + MONITOR THEM
-# --------------------------------------------------
+# -------------------------
+# GET ALL APIS
+# -------------------------
 
 @app.get("/apis")
 def get_apis():
-
     db = SessionLocal()
 
     try:
-
-        apis = (
-            db.query(API)
-            .filter(API.active == True)
-            .all()
-        )
+        apis = db.query(API).all()
 
         results = []
 
         for api in apis:
 
-            result = check_api(api.url)
+            if api.active:
+                result = check_api(api.url)
 
-            check = MonitoringCheck(
-                api_id=api.id,
-                status=result["status"],
-                status_code=result.get("status_code"),
-                response_time=result.get("response_time"),
-                error=result.get("error")
-            )
+                check = MonitoringCheck(
+                    api_id=api.id,
+                    status=result["status"],
+                    status_code=result.get("status_code"),
+                    response_time=result.get("response_time"),
+                    error=result.get("error")
+                )
 
-            db.add(check)
+                db.add(check)
 
-            results.append({
-                "id": api.id,
-                "name": api.name,
-                "url": api.url,
-                "active": api.active,
-                **result
-            })
+                results.append({
+                    "id": api.id,
+                    "name": api.name,
+                    "url": api.url,
+                    "active": api.active,
+                    **result
+                })
+
+            else:
+                results.append({
+                    "id": api.id,
+                    "name": api.name,
+                    "url": api.url,
+                    "active": api.active,
+                    "status": "INACTIVE",
+                    "status_code": None,
+                    "response_time": None
+                })
 
         db.commit()
 
         return results
 
     finally:
-
         db.close()
 
 
-# --------------------------------------------------
-# ADD NEW API
-# --------------------------------------------------
+# -------------------------
+# ADD API
+# -------------------------
 
 @app.post("/apis")
 def create_api(api_data: APIRequest):
-
     db = SessionLocal()
 
     try:
-
         new_api = API(
             name=api_data.name,
             url=api_data.url,
@@ -122,9 +114,7 @@ def create_api(api_data: APIRequest):
         )
 
         db.add(new_api)
-
         db.commit()
-
         db.refresh(new_api)
 
         return {
@@ -136,29 +126,23 @@ def create_api(api_data: APIRequest):
         }
 
     finally:
-
         db.close()
 
 
-# --------------------------------------------------
+# -------------------------
 # DELETE API
-# --------------------------------------------------
+# -------------------------
 
 @app.delete("/apis/{api_id}")
 def delete_api(api_id: int):
-
     db = SessionLocal()
 
     try:
-
-        api = (
-            db.query(API)
-            .filter(API.id == api_id)
-            .first()
-        )
+        api = db.query(API).filter(
+            API.id == api_id
+        ).first()
 
         if not api:
-
             return {
                 "message": "API not found"
             }
@@ -180,7 +164,6 @@ def delete_api(api_id: int):
         }
 
     except Exception as error:
-
         db.rollback()
 
         print("Delete error:", error)
@@ -190,29 +173,23 @@ def delete_api(api_id: int):
         }
 
     finally:
-
         db.close()
 
 
-# --------------------------------------------------
-# API HISTORY
-# --------------------------------------------------
+# -------------------------
+# VIEW API HISTORY
+# -------------------------
 
 @app.get("/apis/{api_id}/history")
 def get_api_history(api_id: int):
-
     db = SessionLocal()
 
     try:
-
-        api = (
-            db.query(API)
-            .filter(API.id == api_id)
-            .first()
-        )
+        api = db.query(API).filter(
+            API.id == api_id
+        ).first()
 
         if not api:
-
             return {
                 "message": "API not found"
             }
@@ -249,32 +226,26 @@ def get_api_history(api_id: int):
         }
 
     finally:
-
         db.close()
 
 
-# --------------------------------------------------
-# ACTIVATE / DEACTIVATE API
-# --------------------------------------------------
+# -------------------------
+# ENABLE / DISABLE API
+# -------------------------
 
 @app.put("/apis/{api_id}")
-def update_api(
+def update_api_status(
     api_id: int,
     api_data: APIStatusRequest
 ):
-
     db = SessionLocal()
 
     try:
-
-        api = (
-            db.query(API)
-            .filter(API.id == api_id)
-            .first()
-        )
+        api = db.query(API).filter(
+            API.id == api_id
+        ).first()
 
         if not api:
-
             return {
                 "message": "API not found"
             }
@@ -282,160 +253,90 @@ def update_api(
         api.active = api_data.active
 
         db.commit()
-
         db.refresh(api)
 
         return {
-            "message": "API status updated",
+            "message": (
+                "API enabled successfully"
+                if api.active
+                else "API disabled successfully"
+            ),
             "id": api.id,
             "name": api.name,
+            "url": api.url,
             "active": api.active
         }
 
     finally:
-
         db.close()
 
 
-# --------------------------------------------------
-# SUMMARY
-# --------------------------------------------------
-
-@app.get("/summary")
-def get_summary():
-
-    db = SessionLocal()
-
-    try:
-
-        apis = (
-            db.query(API)
-            .filter(API.active == True)
-            .all()
-        )
-
-        total = len(apis)
-
-        up = 0
-        down = 0
-
-        for api in apis:
-
-            result = check_api(api.url)
-
-            if result["status"] == "UP":
-
-                up += 1
-
-            else:
-
-                down += 1
-
-        return {
-            "total_apis": total,
-            "up": up,
-            "down": down
-        }
-
-    finally:
-
-        db.close()
-
-
-# --------------------------------------------------
+# -------------------------
 # DASHBOARD
-# --------------------------------------------------
+# -------------------------
 
 @app.get("/dashboard")
 def get_dashboard():
-
     db = SessionLocal()
 
     try:
 
-        # Get ALL APIs, including inactive APIs
+        # Get ALL APIs, including inactive ones
         apis = db.query(API).all()
 
         results = []
 
+        total = len(apis)
+        active = 0
         up = 0
         down = 0
-        active_count = 0
 
         for api in apis:
 
-            # -----------------------------------------
-            # INACTIVE API
-            # -----------------------------------------
+            if api.active:
 
-            if not api.active:
+                active += 1
 
-                results.append({
-                    "id": api.id,
-                    "name": api.name,
-                    "url": api.url,
-                    "active": False,
-                    "status": "INACTIVE",
-                    "status_code": None,
-                    "response_time": None
-                })
-
-                continue
-
-            # -----------------------------------------
-            # ACTIVE API
-            # -----------------------------------------
-
-            active_count += 1
-
-            latest_check = (
-                db.query(MonitoringCheck)
-                .filter(
-                    MonitoringCheck.api_id == api.id
-                )
-                .order_by(
-                    MonitoringCheck.checked_at.desc()
-                )
-                .first()
-            )
-
-            if latest_check:
-
-                status = latest_check.status
-
-                response_time = (
-                    latest_check.response_time
+                latest_check = (
+                    db.query(MonitoringCheck)
+                    .filter(
+                        MonitoringCheck.api_id == api.id
+                    )
+                    .order_by(
+                        MonitoringCheck.checked_at.desc()
+                    )
+                    .first()
                 )
 
-                status_code = (
-                    latest_check.status_code
-                )
+                if latest_check:
+
+                    status = latest_check.status
+                    response_time = latest_check.response_time
+                    status_code = latest_check.status_code
+
+                else:
+
+                    status = "UNKNOWN"
+                    response_time = None
+                    status_code = None
+
+                if status == "UP":
+                    up += 1
+
+                elif status == "DOWN":
+                    down += 1
 
             else:
 
-                result = check_api(api.url)
-
-                status = result["status"]
-
-                response_time = (
-                    result.get("response_time")
-                )
-
-                status_code = (
-                    result.get("status_code")
-                )
-
-            if status == "UP":
-                up += 1
-
-            elif status == "DOWN":
-                down += 1
+                status = "INACTIVE"
+                response_time = None
+                status_code = None
 
             results.append({
                 "id": api.id,
                 "name": api.name,
                 "url": api.url,
-                "active": True,
+                "active": api.active,
                 "status": status,
                 "status_code": status_code,
                 "response_time": response_time
@@ -443,8 +344,8 @@ def get_dashboard():
 
         return {
             "summary": {
-                "total": len(apis),
-                "active": active_count,
+                "total": total,
+                "active": active,
                 "up": up,
                 "down": down
             },
@@ -452,5 +353,4 @@ def get_dashboard():
         }
 
     finally:
-
         db.close()
