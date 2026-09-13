@@ -1,0 +1,68 @@
+[
+    {
+        "name": "JSONPlaceholder",
+        "url": "https://jsonplaceholder.typicode.com/posts/1",
+        "status": "UP",
+        "status_code": 200,
+        "response_time": 0.871434,
+        "checked_at": "2026-09-13T18:46:52.997176"
+    },
+    {
+        "name": "Google",
+        "url": "https://www.google.com",
+        "status": "UP",
+        "status_code": 200,
+        "response_time": 0.50118,
+        "checked_at": "2026-09-13T18:46:53.531613"
+    },
+    {
+        "name": "Invalid API",
+        "url": "https://this-domain-definitely-does-not-exist-12345.com",
+        "status": "DOWN",
+        "status_code": null,
+        "response_time": null,
+        "error": "HTTPSConnectionPool(host='this-domain-definitely-does-not-exist-12345.com', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPSConnection(host='this-domain-definitely-does-not-exist-12345.com', port=443): Failed to resolve 'this-domain-definitely-does-not-exist-12345.com' ([Errno 11001] getaddrinfo failed)\"))",
+        "checked_at": "2026-09-13T18:46:53.563762"
+    },
+    {
+        "name": "GitHub",
+        "url": "https://api.github.com",
+        "status": "UP",
+        "status_code": 200,
+        "response_time": 0.472422,
+        "checked_at": "2026-09-13T18:46:54.058185"
+    },
+    {
+        "name": "JSONPlaceholder",
+        "url": "https://jsonplaceholder.typicode.com/posts/1",
+        "status": "UP",
+        "status_code": 200,
+        "response_time": 1.031199,
+        "checked_at": "2026-09-13T18:48:13.993208"
+    },
+    {
+        "name": "Google",
+        "url": "https://www.google.com",
+        "status": "UP",
+        "status_code": 200,
+        "response_time": 0.604452,
+        "checked_at": "2026-09-13T18:48:14.629456"
+    },
+    {
+        "name": "Invalid API",
+        "url": "https://this-domain-definitely-does-not-exist-12345.com",
+        "status": "DOWN",
+        "status_code": null,
+        "response_time": null,
+        "error": "HTTPSConnectionPool(host='this-domain-definitely-does-not-exist-12345.com', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPSConnection(host='this-domain-definitely-does-not-exist-12345.com', port=443): Failed to resolve 'this-domain-definitely-does-not-exist-12345.com' ([Errno 11001] getaddrinfo failed)\"))",
+        "checked_at": "2026-09-13T18:48:14.643392"
+    },
+    {
+        "name": "GitHub",
+        "url": "https://api.github.com",
+        "status": "UP",
+        "status_code": 200,
+        "response_time": 0.43711,
+        "checked_at": "2026-09-13T18:48:15.104934"
+    }
+]

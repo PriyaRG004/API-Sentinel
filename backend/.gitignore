@@ -1,0 +1,25 @@
+# Python virtual environment
+backend/venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Pytest cache
+.pytest_cache/
+
+# Environment variables
+.env
+
+# Node
+frontend/node_modules/
+
+# Vite build
+frontend/dist/
+
+# VS Code
+.vscode/
+
+# Operating system
+.DS_Store
+Thumbs.db
