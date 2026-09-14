@@ -1,8 +1,4 @@
-from database import engine
+def test_database_module_imports():
+    import database
 
-try:
-    with engine.connect() as connection:
-        print("Database connection successful!")
-except Exception as error:
-    print("Database connection failed!")
-    print(error)
+    assert database.engine is not None

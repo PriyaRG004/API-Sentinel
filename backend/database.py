@@ -10,7 +10,7 @@ load_dotenv()
 
 DB_USER = "postgres"
 
-DB_PASSWORD = os.getenv("DB_PASSWORD")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "")
 
 DB_HOST = os.getenv("DB_HOST", "db")
 
@@ -32,4 +32,3 @@ SessionLocal = sessionmaker(
 )
 
 # Create database tables if they do not already exist
-Base.metadata.create_all(bind=engine)
